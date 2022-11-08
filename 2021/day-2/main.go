@@ -106,10 +106,9 @@ func main() {
 		panic(err)
 	}
 
-	fmt.Println(commands)
-	// horizontalPosition, depth := processCommands(commands)
-	// fmt.Printf("Horizontal Position %d * Depth %d = %d\n", horizontalPosition, depth, horizontalPosition*depth)
-
-	horizontalPosition, depth := processCommandsWithAim(commands)
+	horizontalPosition, depth := processCommands(commands)
 	fmt.Printf("Horizontal Position %d * Depth %d = %d\n", horizontalPosition, depth, horizontalPosition*depth)
+
+	horizontalPosition, depth = processCommandsWithAim(commands)
+	fmt.Printf("(With Aim) Horizontal Position %d * Depth %d = %d\n", horizontalPosition, depth, horizontalPosition*depth)
 }
