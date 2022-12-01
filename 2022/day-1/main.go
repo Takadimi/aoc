@@ -11,6 +11,64 @@ import (
 
 var inputFileFlag = flag.String("inputFile", "sample.txt", "Relative file path to use as input.")
 
+func main() {
+	flag.Parse()
+	inputFile := *inputFileFlag
+
+	calorieEntries, err := lines(inputFile)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	caloriesByElf, err := parseCalorieEntries(calorieEntries)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	fmt.Println("Part 1:", partOne(caloriesByElf))
+	fmt.Println("Part 2:", partTwo(caloriesByElf))
+}
+
+func partOne(caloriesByElf []int) int {
+	sortByHighestCalories(caloriesByElf)
+	return caloriesByElf[0]
+}
+
+func partTwo(caloriesByElf []int) int {
+	sortByHighestCalories(caloriesByElf)
+	sumOfLastThree := 0
+	for _, calories := range caloriesByElf[:3] {
+		sumOfLastThree += calories
+	}
+	return sumOfLastThree
+}
+
+func parseCalorieEntries(calorieEntries []string) ([]int, error) {
+	caloriesByElf := []int{}
+	currentCaloriesForElf := 0
+	for _, calorieEntry := range calorieEntries {
+		if calorieEntry == "" {
+			caloriesByElf = append(caloriesByElf, currentCaloriesForElf)
+			currentCaloriesForElf = 0
+			continue
+		}
+
+		calorieCount, err := strconv.Atoi(calorieEntry)
+		if err != nil {
+			return nil, err
+		}
+		currentCaloriesForElf += calorieCount
+	}
+	caloriesByElf = append(caloriesByElf, currentCaloriesForElf)
+	return caloriesByElf, nil
+}
+
+func sortByHighestCalories(caloriesByElf []int) {
+	sort.Sort(sort.Reverse(sort.IntSlice(caloriesByElf)))
+}
+
 func lines(fileName string) ([]string, error) {
 	f, err := os.Open(fileName)
 	if err != nil {
@@ -27,57 +85,4 @@ func lines(fileName string) ([]string, error) {
 	}
 
 	return result, nil
-}
-
-func partOne(caloriesByElf []int) int {
-	maxCalories := 0
-	for _, calories := range caloriesByElf {
-		if calories > maxCalories {
-			maxCalories = calories
-		}
-	}
-	return maxCalories
-}
-
-func partTwo(caloriesByElf []int) int {
-	caloriesSorted := caloriesByElf
-	sort.Ints(caloriesSorted)
-	lastThree := caloriesSorted[len(caloriesSorted)-3:]
-	sumOfLastThree := 0
-	for _, calories := range lastThree {
-		sumOfLastThree += calories
-	}
-	return sumOfLastThree
-}
-
-func main() {
-	flag.Parse()
-	inputFile := *inputFileFlag
-
-	calorieEntries, err := lines(inputFile)
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-
-	caloriesByElf := []int{}
-	currentCaloriesForElf := 0
-	for _, calorieEntry := range calorieEntries {
-		if calorieEntry == "" {
-			caloriesByElf = append(caloriesByElf, currentCaloriesForElf)
-			currentCaloriesForElf = 0
-			continue
-		}
-
-		calorieCount, err := strconv.Atoi(calorieEntry)
-		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
-		}
-		currentCaloriesForElf += calorieCount
-	}
-	caloriesByElf = append(caloriesByElf, currentCaloriesForElf)
-
-	fmt.Println("Part 1:", partOne(caloriesByElf))
-	fmt.Println("Part 2:", partTwo(caloriesByElf))
 }
