@@ -1,12 +1,13 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"sort"
 	"strconv"
+
+	"github.com/Takadimi/aoc/2022/file"
 )
 
 var inputFileFlag = flag.String("inputFile", "sample.txt", "Relative file path to use as input.")
@@ -15,7 +16,7 @@ func main() {
 	flag.Parse()
 	inputFile := *inputFileFlag
 
-	calorieEntries, err := lines(inputFile)
+	calorieEntries, err := file.Lines(inputFile)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -67,22 +68,4 @@ func parseCalorieEntries(calorieEntries []string) ([]int, error) {
 
 func sortByHighestCalories(caloriesByElf []int) {
 	sort.Sort(sort.Reverse(sort.IntSlice(caloriesByElf)))
-}
-
-func lines(fileName string) ([]string, error) {
-	f, err := os.Open(fileName)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	scanner := bufio.NewScanner(f)
-	scanner.Split(bufio.ScanLines)
-	result := []string{}
-	for scanner.Scan() {
-		line := scanner.Text()
-		result = append(result, line)
-	}
-
-	return result, nil
 }
