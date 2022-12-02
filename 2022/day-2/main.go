@@ -37,42 +37,21 @@ const (
 type Outcome int
 
 const (
-	Outcome_Unknown = -1
-	Outcome_Lose    = 0
-	Outcome_Draw    = 3
-	Outcome_Win     = 6
+	Outcome_Unknown Outcome = -1
+	Outcome_Lose    Outcome = 0
+	Outcome_Draw    Outcome = 3
+	Outcome_Win     Outcome = 6
 )
 
 func determineOutcome(opponentsMove, myMove Choice) Outcome {
-	if opponentsMove == myMove {
-		return Outcome_Draw
+	outcomes := map[int]Outcome{
+		-2: Outcome_Lose,
+		-1: Outcome_Win,
+		0:  Outcome_Draw,
+		1:  Outcome_Lose,
+		2:  Outcome_Win,
 	}
-
-	switch opponentsMove {
-	case Choice_Rock:
-		if myMove == Choice_Paper {
-			return Outcome_Win
-		}
-		if myMove == Choice_Scissors {
-			return Outcome_Lose
-		}
-	case Choice_Paper:
-		if myMove == Choice_Scissors {
-			return Outcome_Win
-		}
-		if myMove == Choice_Rock {
-			return Outcome_Lose
-		}
-	case Choice_Scissors:
-		if myMove == Choice_Rock {
-			return Outcome_Win
-		}
-		if myMove == Choice_Paper {
-			return Outcome_Lose
-		}
-	}
-
-	return Outcome_Unknown
+	return outcomes[int(opponentsMove-myMove)]
 }
 
 func partOne(entries []string) int {
@@ -135,34 +114,27 @@ type Round struct {
 func partTwo(entries []string) int {
 	strategyGuide := parseStrategyGuidePartTwo(entries)
 
-	winningMove := map[Choice]Choice{
-		Choice_Rock:     Choice_Paper,
-		Choice_Paper:    Choice_Scissors,
-		Choice_Scissors: Choice_Rock,
-	}
+	matchOpponentMoveForIntendedOutcome := map[int]Choice{
+		(int(Outcome_Draw) + int(Choice_Rock)):     Choice_Rock,
+		(int(Outcome_Draw) + int(Choice_Paper)):    Choice_Paper,
+		(int(Outcome_Draw) + int(Choice_Scissors)): Choice_Scissors,
 
-	losingMove := map[Choice]Choice{
-		Choice_Rock:     Choice_Scissors,
-		Choice_Paper:    Choice_Rock,
-		Choice_Scissors: Choice_Paper,
+		(int(Outcome_Lose) + int(Choice_Rock)):     Choice_Scissors,
+		(int(Outcome_Lose) + int(Choice_Paper)):    Choice_Rock,
+		(int(Outcome_Lose) + int(Choice_Scissors)): Choice_Paper,
+
+		(int(Outcome_Win) + int(Choice_Rock)):     Choice_Paper,
+		(int(Outcome_Win) + int(Choice_Paper)):    Choice_Scissors,
+		(int(Outcome_Win) + int(Choice_Scissors)): Choice_Rock,
 	}
 
 	cumulativeScore := 0
 	for _, round := range strategyGuide {
 		opponentsMove := round.OpponentsMove
 
-		var myMove Choice
-		switch round.IntendedOutcome {
-		case Outcome_Lose:
-			myMove = losingMove[opponentsMove]
-		case Outcome_Draw:
-			myMove = opponentsMove
-		case Outcome_Win:
-			myMove = winningMove[opponentsMove]
-		}
-
-		if myMove == Choice_Unknown {
-			panic("unknown choice for round")
+		myMove, hasMatchingMove := matchOpponentMoveForIntendedOutcome[int(round.IntendedOutcome)+int(opponentsMove)]
+		if !hasMatchingMove {
+			panic("unknown matching move for round")
 		}
 
 		cumulativeScore += int(myMove)
