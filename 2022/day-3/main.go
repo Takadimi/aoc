@@ -57,30 +57,6 @@ type Rucksack struct {
 	B   map[int]bool
 }
 
-func parseRucksacks(lines []string) ([]Rucksack, error) {
-	rucksacks := []Rucksack{}
-	for _, line := range lines {
-		rucksack := Rucksack{
-			All: make(map[int]bool),
-			A:   make(map[int]bool),
-			B:   make(map[int]bool),
-		}
-		compartentSize := len(line) / 2
-		for i, char := range line {
-			priority := charToPriority[char]
-			rucksack.All[priority] = true
-			if i < compartentSize {
-				rucksack.A[priority] = true
-			} else {
-				rucksack.B[priority] = true
-			}
-		}
-		rucksacks = append(rucksacks, rucksack)
-	}
-
-	return rucksacks, nil
-}
-
 func priorityOfItemPresentInBothCompartments(r Rucksack) int {
 	for ap := range r.A {
 		for bp := range r.B {
@@ -121,57 +97,44 @@ func groupRucksacks(rucksacks []Rucksack, groupCount int) [][]Rucksack {
 	return groups
 }
 
-var charToPriority = map[rune]int{
-	'a': 1,
-	'b': 2,
-	'c': 3,
-	'd': 4,
-	'e': 5,
-	'f': 6,
-	'g': 7,
-	'h': 8,
-	'i': 9,
-	'j': 10,
-	'k': 11,
-	'l': 12,
-	'm': 13,
-	'n': 14,
-	'o': 15,
-	'p': 16,
-	'q': 17,
-	'r': 18,
-	's': 19,
-	't': 20,
-	'u': 21,
-	'v': 22,
-	'w': 23,
-	'x': 24,
-	'y': 25,
-	'z': 26,
-	'A': 27,
-	'B': 28,
-	'C': 29,
-	'D': 30,
-	'E': 31,
-	'F': 32,
-	'G': 33,
-	'H': 34,
-	'I': 35,
-	'J': 36,
-	'K': 37,
-	'L': 38,
-	'M': 39,
-	'N': 40,
-	'O': 41,
-	'P': 42,
-	'Q': 43,
-	'R': 44,
-	'S': 45,
-	'T': 46,
-	'U': 47,
-	'V': 48,
-	'W': 49,
-	'X': 50,
-	'Y': 51,
-	'Z': 52,
+func parseRucksacks(lines []string) ([]Rucksack, error) {
+	rucksacks := []Rucksack{}
+	for _, line := range lines {
+		rucksack := Rucksack{
+			All: make(map[int]bool),
+			A:   make(map[int]bool),
+			B:   make(map[int]bool),
+		}
+		compartentSize := len(line) / 2
+		for i, char := range line {
+			p := priorityByItemType[char]
+			rucksack.All[p] = true
+			if i < compartentSize {
+				rucksack.A[p] = true
+			} else {
+				rucksack.B[p] = true
+			}
+		}
+		rucksacks = append(rucksacks, rucksack)
+	}
+
+	return rucksacks, nil
 }
+
+func mapItemTypeToPriority() map[rune]int {
+	priorityMap := map[rune]int{}
+	priority := 0
+
+	for itemType := 'a'; itemType <= 'z'; itemType++ {
+		priority++
+		priorityMap[itemType] = priority
+	}
+	for itemType := 'A'; itemType <= 'Z'; itemType++ {
+		priority++
+		priorityMap[itemType] = priority
+	}
+
+	return priorityMap
+}
+
+var priorityByItemType = mapItemTypeToPriority()
