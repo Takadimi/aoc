@@ -84,39 +84,37 @@ func parseAssignmentPairs(lines []string) ([][2]Range, error) {
 			return nil, errors.New("unexpected pair parts length")
 		}
 
-		firstRangeParts := strings.Split(pairParts[0], "-")
-		if len(firstRangeParts) != 2 {
-			return nil, errors.New("unexpected first range parts length")
-		}
-		secondRangeParts := strings.Split(pairParts[1], "-")
-		if len(secondRangeParts) != 2 {
-			return nil, errors.New("unexpected first range parts length")
-		}
-
-		firstRangeStart, err := strconv.Atoi(firstRangeParts[0])
+		firstRange, err := parseRange(pairParts[0])
 		if err != nil {
 			return nil, err
 		}
-		firstRangeEnd, err := strconv.Atoi(firstRangeParts[1])
+		secondRange, err := parseRange(pairParts[1])
 		if err != nil {
 			return nil, err
 		}
-		firstRange := Range{firstRangeStart, firstRangeEnd}
-
-		secondRangeStart, err := strconv.Atoi(secondRangeParts[0])
-		if err != nil {
-			return nil, err
-		}
-		secondRangeEnd, err := strconv.Atoi(secondRangeParts[1])
-		if err != nil {
-			return nil, err
-		}
-		secondRange := Range{secondRangeStart, secondRangeEnd}
 
 		assignmentPairs = append(assignmentPairs, [2]Range{firstRange, secondRange})
 	}
 
 	return assignmentPairs, nil
+}
+
+func parseRange(rangeString string) (Range, error) {
+	rangeParts := strings.Split(rangeString, "-")
+	if len(rangeParts) != 2 {
+		return Range{}, errors.New("unexpected range parts length")
+	}
+
+	rangeStart, err := strconv.Atoi(rangeParts[0])
+	if err != nil {
+		return Range{}, err
+	}
+	rangeEnd, err := strconv.Atoi(rangeParts[1])
+	if err != nil {
+		return Range{}, err
+	}
+
+	return Range{rangeStart, rangeEnd}, nil
 }
 
 type Range struct {
