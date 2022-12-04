@@ -36,15 +36,12 @@ func main() {
 func partOne(pairs [][2]Range) int {
 	sumOfFullyContainedPairs := 0
 	for _, p := range pairs {
-		first, second := p[0], p[1]
-		longest := first
-		other := second
-		if second.length() > longest.length() {
-			longest = second
-			other = first
+		longest, shortest := p[0], p[1]
+		if shortest.length() > longest.length() {
+			longest, shortest = shortest, longest
 		}
 
-		if longest.fullyContains(other) {
+		if longest.fullyContains(shortest) {
 			sumOfFullyContainedPairs++
 		}
 	}
