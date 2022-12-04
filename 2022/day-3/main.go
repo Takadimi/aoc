@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/Takadimi/aoc/2022/file"
+	"github.com/Takadimi/aoc/2022/set"
 )
 
 var inputFileFlag = flag.String("inputFile", "sample.txt", "Relative file path to use as input.")
@@ -52,14 +53,14 @@ func partTwo(lines []string) int {
 }
 
 type Rucksack struct {
-	All map[int]bool
-	A   map[int]bool
-	B   map[int]bool
+	All *set.Set[int]
+	A   *set.Set[int]
+	B   *set.Set[int]
 }
 
 func priorityOfItemPresentInBothCompartments(r Rucksack) int {
-	for ap := range r.A {
-		for bp := range r.B {
+	for _, ap := range r.A.Values() {
+		for _, bp := range r.B.Values() {
 			if ap == bp {
 				return bp
 			}
@@ -70,10 +71,10 @@ func priorityOfItemPresentInBothCompartments(r Rucksack) int {
 
 func priorityOfItemPresentInAllOfGroup(group []Rucksack) int {
 	firstRucksack := group[0]
-	for p := range firstRucksack.All {
+	for _, p := range firstRucksack.All.Values() {
 		presentInAll := true
 		for _, r := range group[1:] {
-			if !r.All[p] {
+			if !r.All.Has(p) {
 				presentInAll = false
 			}
 		}
@@ -101,18 +102,18 @@ func parseRucksacks(lines []string) ([]Rucksack, error) {
 	rucksacks := []Rucksack{}
 	for _, line := range lines {
 		rucksack := Rucksack{
-			All: make(map[int]bool),
-			A:   make(map[int]bool),
-			B:   make(map[int]bool),
+			All: set.NewSet[int](),
+			A:   set.NewSet[int](),
+			B:   set.NewSet[int](),
 		}
 		compartentSize := len(line) / 2
 		for i, char := range line {
 			p := priorityByItemType[char]
-			rucksack.All[p] = true
+			rucksack.All.Set(p)
 			if i < compartentSize {
-				rucksack.A[p] = true
+				rucksack.A.Set(p)
 			} else {
-				rucksack.B[p] = true
+				rucksack.B.Set(p)
 			}
 		}
 		rucksacks = append(rucksacks, rucksack)
