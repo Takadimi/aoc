@@ -23,20 +23,22 @@ func main() {
 		os.Exit(1)
 	}
 
-	fmt.Println("Part one:", partOne(lines))
-	fmt.Println("Part two:", partTwo(lines))
-}
-
-func partOne(lines []string) string {
 	sections := splitBySection(lines)
 	if len(sections) != 2 {
 		panic("expected 2 sections")
 	}
 	startingStacksSection, procedureSection := sections[0], sections[1]
 
-	stacks := parseStacks(startingStacksSection)
 	procedure := parseProcedure(procedureSection)
 
+	partOneStacks := parseStacks(startingStacksSection)
+	partTwoStacks := parseStacks(startingStacksSection)
+
+	fmt.Println("Part one:", partOne(partOneStacks, procedure))
+	fmt.Println("Part two:", partTwo(partTwoStacks, procedure))
+}
+
+func partOne(stacks [][]string, procedure []Instruction) string {
 	for _, instruction := range procedure {
 		fromStack := stacks[instruction.From]
 		toStack := stacks[instruction.To]
@@ -51,24 +53,10 @@ func partOne(lines []string) string {
 		stacks[instruction.To] = toStack
 	}
 
-	message := ""
-	for i := 1; i <= len(stacks); i++ {
-		stack := stacks[i]
-		message += stack[len(stack)-1]
-	}
-	return message
+	return topItems(stacks)
 }
 
-func partTwo(lines []string) string {
-	sections := splitBySection(lines)
-	if len(sections) != 2 {
-		panic("expected 2 sections")
-	}
-	startingStacksSection, procedureSection := sections[0], sections[1]
-
-	stacks := parseStacks(startingStacksSection)
-	procedure := parseProcedure(procedureSection)
-
+func partTwo(stacks [][]string, procedure []Instruction) string {
 	for _, instruction := range procedure {
 		fromStack := stacks[instruction.From]
 		toStack := stacks[instruction.To]
@@ -81,16 +69,19 @@ func partTwo(lines []string) string {
 		stacks[instruction.To] = toStack
 	}
 
-	message := ""
-	for i := 1; i <= len(stacks); i++ {
-		stack := stacks[i]
-		message += stack[len(stack)-1]
-	}
-	return message
+	return topItems(stacks)
 }
 
-func parseStacks(lines []string) map[int][]string {
-	stacks := map[int][]string{}
+func topItems(stacks [][]string) string {
+	topItems := ""
+	for i := 1; i < len(stacks); i++ {
+		stack := stacks[i]
+		topItems += stack[len(stack)-1]
+	}
+	return topItems
+}
+
+func parseStacks(lines []string) [][]string {
 	stackIDsLine := lines[len(lines)-1]
 	stackIDIndexes := map[int]int{}
 	for i, id := range stackIDsLine {
@@ -99,10 +90,11 @@ func parseStacks(lines []string) map[int][]string {
 			if err != nil {
 				panic(err)
 			}
-			stacks[idValue] = make([]string, 0)
 			stackIDIndexes[i] = idValue
 		}
 	}
+
+	stacks := make([][]string, len(stackIDIndexes)+1)
 
 	for _, l := range lines[:len(lines)-1] {
 		for i, char := range l {
