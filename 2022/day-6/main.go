@@ -35,9 +35,9 @@ func partTwo(line string) int {
 }
 
 func indexAfterNUniqueCharacters(line string, n int) int {
-	for i := 0; i < len(line)-n-1; i++ {
+	for i := n; i < len(line); i++ {
 		occurenceMap := map[rune]int{}
-		segment := line[i : i+n]
+		segment := line[i-n : i]
 		for _, char := range segment {
 			occurenceMap[char] = occurenceMap[char] + 1
 		}
@@ -50,7 +50,7 @@ func indexAfterNUniqueCharacters(line string, n int) int {
 			}
 		}
 		if !hasDuplicates {
-			return i + n
+			return i
 		}
 	}
 
