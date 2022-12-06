@@ -20,9 +20,13 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Println("Part one:")
 	for i, l := range lines {
-		fmt.Printf("Part one (line %d): %d\n", i+1, partOne(l))
-		fmt.Printf("Part two (line %d): %d\n", i+1, partTwo(l))
+		fmt.Printf("\tLine %d: %d\n", i+1, partOne(l))
+	}
+	fmt.Println("Part two:")
+	for i, l := range lines {
+		fmt.Printf("\tLine %d: %d\n", i+1, partTwo(l))
 	}
 }
 
