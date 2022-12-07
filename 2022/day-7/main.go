@@ -67,24 +67,23 @@ func parseFileSizesByDir(lines []string) (map[string]int, error) {
 	for _, l := range lines {
 		fields := strings.Fields(l)
 
-		if fields[0] == "$" && fields[1] == "cd" {
-			currentPath = path.Clean(currentPath + "/" + fields[2])
+		if dir, isChangeDirCommand := matchChangeDirCommand(fields); isChangeDirCommand {
+			currentPath = path.Clean(currentPath + "/" + dir)
 			continue
 		}
 
-		if fields[0] == "$" && fields[1] == "ls" {
+		if isListDirCommand := matchListDirCommand(fields); isListDirCommand {
 			continue
 		}
 
-		if fields[0] == "dir" {
+		if _, isListedDir := matchListedDir(fields); isListedDir {
 			continue
 		}
 
-		fileSize, err := strconv.Atoi(fields[0])
-		if err != nil {
-			return nil, err
+		if fileSize, fileName, isListedFile := matchListedFile(fields); isListedFile {
+			fileSizesByPath[path.Clean(currentPath+"/"+fileName)] = fileSize
+			continue
 		}
-		fileSizesByPath[path.Clean(currentPath+"/"+fields[1])] = fileSize
 	}
 
 	fileSizesByDir := map[string]int{}
@@ -100,4 +99,41 @@ func parseFileSizesByDir(lines []string) (map[string]int, error) {
 	}
 
 	return fileSizesByDir, nil
+}
+
+func matchChangeDirCommand(fields []string) (string, bool) {
+	if len(fields) != 3 || fields[0] != "$" || fields[1] != "cd" {
+		return "", false
+	}
+
+	return fields[2], true
+}
+
+func matchListDirCommand(fields []string) bool {
+	if len(fields) != 2 || fields[0] != "$" || fields[1] != "ls" {
+		return false
+	}
+
+	return true
+}
+
+func matchListedFile(fields []string) (int, string, bool) {
+	if len(fields) != 2 {
+		return 0, "", false
+	}
+
+	fileSize, err := strconv.Atoi(fields[0])
+	if err != nil {
+		return 0, "", false
+	}
+
+	return fileSize, fields[1], true
+}
+
+func matchListedDir(fields []string) (string, bool) {
+	if len(fields) != 2 || fields[0] != "dir" {
+		return "", false
+	}
+
+	return fields[1], true
 }
