@@ -40,56 +40,16 @@ func sumOfVisibleTrees(treeMap [][]int) int {
 		for x := 1; x < len(treeMap[y])-1; x++ {
 			tree := treeMap[y][x]
 
-			// North
-			visibleNorth := true
-			for yy := 0; yy < y; yy++ {
-				if treeMap[yy][x] >= tree {
-					visibleNorth = false
-					break
-				}
+			checkVisibility := func(wTree int) bool {
+				return wTree < tree
 			}
-			if visibleNorth {
-				sum++
-				continue
-			}
+			visibleNorth := walkTreeMapNorth(treeMap, x, y, checkVisibility)
+			visibleSouth := walkTreeMapSouth(treeMap, x, y, checkVisibility)
+			visibleEast := walkTreeMapEast(treeMap, x, y, checkVisibility)
+			visibleWest := walkTreeMapWest(treeMap, x, y, checkVisibility)
 
-			// South
-			visibleSouth := true
-			for yy := y + 1; yy < len(treeMap); yy++ {
-				if treeMap[yy][x] >= tree {
-					visibleSouth = false
-					break
-				}
-			}
-			if visibleSouth {
+			if visibleNorth || visibleSouth || visibleEast || visibleWest {
 				sum++
-				continue
-			}
-
-			// East
-			visibleEast := true
-			for xx := x + 1; xx < len(treeMap[y]); xx++ {
-				if treeMap[y][xx] >= tree {
-					visibleEast = false
-					break
-				}
-			}
-			if visibleEast {
-				sum++
-				continue
-			}
-
-			// West
-			visibleWest := true
-			for xx := 0; xx < x; xx++ {
-				if treeMap[y][xx] >= tree {
-					visibleWest = false
-					break
-				}
-			}
-			if visibleWest {
-				sum++
-				continue
 			}
 		}
 	}
@@ -104,41 +64,27 @@ func highestScenicScore(treeMap [][]int) int {
 		for x := 0; x < len(treeMap[y]); x++ {
 			tree := treeMap[y][x]
 
-			// North
 			northScore := 0
-			for yy := y - 1; yy >= 0; yy-- {
-				northScore++
-				if treeMap[yy][x] >= tree {
-					break
-				}
-			}
-
-			// South
 			southScore := 0
-			for yy := y + 1; yy < len(treeMap); yy++ {
-				southScore++
-				if treeMap[yy][x] >= tree {
-					break
-				}
-			}
-
-			// East
 			eastScore := 0
-			for xx := x + 1; xx < len(treeMap[y]); xx++ {
-				eastScore++
-				if treeMap[y][xx] >= tree {
-					break
-				}
-			}
-
-			// West
 			westScore := 0
-			for xx := x - 1; xx >= 0; xx-- {
+
+			walkTreeMapNorth(treeMap, x, y, func(wTree int) bool {
+				northScore++
+				return wTree < tree
+			})
+			walkTreeMapSouth(treeMap, x, y, func(wTree int) bool {
+				southScore++
+				return wTree < tree
+			})
+			walkTreeMapEast(treeMap, x, y, func(wTree int) bool {
+				eastScore++
+				return wTree < tree
+			})
+			walkTreeMapWest(treeMap, x, y, func(wTree int) bool {
 				westScore++
-				if treeMap[y][xx] >= tree {
-					break
-				}
-			}
+				return wTree < tree
+			})
 
 			totalScore := northScore * southScore * eastScore * westScore
 			if totalScore > highestScenicScore {
@@ -148,6 +94,44 @@ func highestScenicScore(treeMap [][]int) int {
 	}
 
 	return highestScenicScore
+}
+
+type treeWalkFunc func(int) bool
+
+func walkTreeMapNorth(treeMap [][]int, startingX, startingY int, walkFunc treeWalkFunc) bool {
+	for cy := startingY - 1; cy >= 0; cy-- {
+		if keepWalking := walkFunc(treeMap[cy][startingX]); !keepWalking {
+			return false
+		}
+	}
+	return true
+}
+
+func walkTreeMapSouth(treeMap [][]int, startingX, startingY int, walkFunc treeWalkFunc) bool {
+	for cy := startingY + 1; cy < len(treeMap); cy++ {
+		if keepWalking := walkFunc(treeMap[cy][startingX]); !keepWalking {
+			return false
+		}
+	}
+	return true
+}
+
+func walkTreeMapEast(treeMap [][]int, startingX, startingY int, walkFunc treeWalkFunc) bool {
+	for cx := startingX + 1; cx < len(treeMap[startingY]); cx++ {
+		if keepWalking := walkFunc(treeMap[startingY][cx]); !keepWalking {
+			return false
+		}
+	}
+	return true
+}
+
+func walkTreeMapWest(treeMap [][]int, startingX, startingY int, walkFunc treeWalkFunc) bool {
+	for cx := startingX - 1; cx >= 0; cx-- {
+		if keepWalking := walkFunc(treeMap[startingY][cx]); !keepWalking {
+			return false
+		}
+	}
+	return true
 }
 
 func parseTreeMap(lines []string) ([][]int, error) {
