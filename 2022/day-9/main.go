@@ -29,11 +29,19 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Println("Part one:", len(simulate(headMotionSeries, 1)[0].VisitedPositions))
+	fmt.Println("Part two:", len(simulate(headMotionSeries, 10)[8].VisitedPositions))
+}
+
+type Tail struct {
+	Position         Position
+	VisitedPositions map[Position]bool
+}
+
+func simulate(headMotionSeries []Motion, tailCount int) []Tail {
 	headPosition := Position{0, 0}
-	tailPosition := Position{0, 0}
-	visitedTailPositions := map[Position]bool{
-		tailPosition: true,
-	}
+
+	tails := make([]Tail, tailCount)
 
 	for _, motion := range headMotionSeries {
 		for step := 0; step < motion.Steps; step++ {
@@ -50,43 +58,54 @@ func main() {
 				panic("unknown direction")
 			}
 
-			tpxo := headPosition.X - tailPosition.X
-			tpyo := headPosition.Y - tailPosition.Y
+			for i, tail := range tails {
+				tpxo := headPosition.X - tail.Position.X
+				tpyo := headPosition.Y - tail.Position.Y
 
-			if (tpxo > 0 && tpyo > 1) || (tpxo > 1 && tpyo > 0) {
-				// NE
-				tailPosition.X++
-				tailPosition.Y++
-			} else if (tpxo < 0 && tpyo < -1) || (tpxo < -1 && tpyo < 0) {
-				// SW
-				tailPosition.X--
-				tailPosition.Y--
-			} else if (tpxo > 0 && tpyo < -1) || (tpxo > 1 && tpyo < 0) {
-				// SE
-				tailPosition.X++
-				tailPosition.Y--
-			} else if (tpxo < 0 && tpyo > 1) || (tpxo < -1 && tpyo > 0) {
-				// NW
-				tailPosition.X--
-				tailPosition.Y++
-			} else if tpxo > 1 {
-				// E
-				tailPosition.X++
-			} else if tpxo < -1 {
-				// W
-				tailPosition.X--
-			} else if tpyo > 1 {
-				// N
-				tailPosition.Y++
-			} else if tpyo < -1 {
-				tailPosition.Y--
+				if i > 0 {
+					tpxo = tails[i-1].Position.X - tail.Position.X
+					tpyo = tails[i-1].Position.Y - tail.Position.Y
+				}
+
+				if (tpxo > 0 && tpyo > 1) || (tpxo > 1 && tpyo > 0) {
+					// NE
+					tail.Position.X++
+					tail.Position.Y++
+				} else if (tpxo < 0 && tpyo < -1) || (tpxo < -1 && tpyo < 0) {
+					// SW
+					tail.Position.X--
+					tail.Position.Y--
+				} else if (tpxo > 0 && tpyo < -1) || (tpxo > 1 && tpyo < 0) {
+					// SE
+					tail.Position.X++
+					tail.Position.Y--
+				} else if (tpxo < 0 && tpyo > 1) || (tpxo < -1 && tpyo > 0) {
+					// NW
+					tail.Position.X--
+					tail.Position.Y++
+				} else if tpxo > 1 {
+					// E
+					tail.Position.X++
+				} else if tpxo < -1 {
+					// W
+					tail.Position.X--
+				} else if tpyo > 1 {
+					// N
+					tail.Position.Y++
+				} else if tpyo < -1 {
+					tail.Position.Y--
+				}
+
+				if tail.VisitedPositions == nil {
+					tail.VisitedPositions = make(map[Position]bool)
+				}
+				tail.VisitedPositions[tail.Position] = true
+				tails[i] = tail
 			}
-
-			visitedTailPositions[tailPosition] = true
 		}
 	}
 
-	fmt.Println(len(visitedTailPositions))
+	return tails
 }
 
 type Position struct {
