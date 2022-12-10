@@ -29,6 +29,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	fmt.Println("Part one:", partOne(instructions))
+	fmt.Println("Part two:", partTwo(instructions))
+}
+
+func partOne(instructions []Instruction) int {
 	registerX := 1
 	cycle := 1
 	signalStrengthSum := 0
@@ -45,7 +50,33 @@ func main() {
 		registerX += instruction.Increment
 	}
 
-	fmt.Println(signalStrengthSum)
+	return signalStrengthSum
+}
+
+func partTwo(instructions []Instruction) string {
+	registerX := 1
+	cycle := 1
+
+	renderedImage := ""
+	for _, instruction := range instructions {
+		for c := 0; c < instruction.CycleCount; c++ {
+			xPos := cycle % 40
+			if registerX == xPos || registerX+1 == xPos || registerX+2 == xPos {
+				renderedImage += "#"
+			} else {
+				renderedImage += "."
+			}
+
+			cycle++
+			if cycle%40 == 1 {
+				renderedImage += "\n"
+			}
+		}
+
+		registerX += instruction.Increment
+	}
+
+	return "\n" + renderedImage + "\n"
 }
 
 type Instruction struct {
