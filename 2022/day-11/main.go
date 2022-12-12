@@ -33,16 +33,21 @@ func main() {
 	}
 
 	fmt.Println("Part one:", partOne(monkeys))
+	fmt.Println("Part two:", partTwo(monkeys))
 }
 
-func partOne(monkeys []Monkey) int {
+func partOne(startingMonkeys []Monkey) int {
+	monkeys := make([]Monkey, len(startingMonkeys))
+	copy(monkeys, startingMonkeys)
+
 	for round := 0; round < 20; round++ {
 		for i, monkey := range monkeys {
 			for _, item := range monkey.Items {
 				monkeys[i].InspectionCount++
 				newWorryLevel := monkey.Operation(item)
 				newWorryLevel /= 3
-				if monkey.Test(newWorryLevel) {
+				testTrue, _ := monkey.Test(newWorryLevel)
+				if testTrue {
 					monkeys[monkey.MonkeyToThrowToIfTrue].Items = append(monkeys[monkey.MonkeyToThrowToIfTrue].Items, newWorryLevel)
 				} else {
 					monkeys[monkey.MonkeyToThrowToIfFalse].Items = append(monkeys[monkey.MonkeyToThrowToIfFalse].Items, newWorryLevel)
@@ -61,10 +66,69 @@ func partOne(monkeys []Monkey) int {
 	return monkeyBusiness
 }
 
+func productOfDivisors(monkeys []Monkey) int {
+	product := 1
+	for _, monkey := range monkeys {
+		product *= monkey.Divisor
+	}
+	return product
+}
+
+func partTwo(startingMonkeys []Monkey) int {
+	monkeys := make([]Monkey, len(startingMonkeys))
+	copy(monkeys, startingMonkeys)
+
+	divisor := productOfDivisors(monkeys)
+
+	// 18_446_744_073_709_551_615
+	/*
+	   26_944_422_764_546
+	   2_168_714_973_735_646_524
+	   3_905_011_361_967_624_133
+	   556_599_819_735_019_700
+	   9_614_212_480_527_361_975
+	   15_864_280_884_851_703_970
+	*/
+
+	for round := 0; round < 10_000; round++ {
+		if round == 1 || round == 20 || round == 1000 {
+			fmt.Println("ROUND", round)
+			for i, monkey := range monkeys {
+				fmt.Println(i, monkey.InspectionCount)
+				// fmt.Println(i, monkey.Items)
+			}
+		}
+
+		for i := range monkeys {
+			for _, item := range monkeys[i].Items {
+				monkeys[i].InspectionCount++
+				newWorryLevel := monkeys[i].Operation(item)
+				thrownToMonkeyIndex := monkeys[i].MonkeyToThrowToIfTrue
+				testTrue, _ := monkeys[i].Test(newWorryLevel)
+				newWorryLevel %= divisor
+				if !testTrue {
+					thrownToMonkeyIndex = monkeys[i].MonkeyToThrowToIfFalse
+				}
+				monkeys[thrownToMonkeyIndex].Items = append(monkeys[thrownToMonkeyIndex].Items, newWorryLevel)
+			}
+			monkeys[i].Items = []int{}
+		}
+	}
+
+	sort.SliceStable(monkeys, func(i, j int) bool {
+		return monkeys[i].InspectionCount > monkeys[j].InspectionCount
+	})
+
+	monkeyBusiness := monkeys[0].InspectionCount * monkeys[1].InspectionCount
+
+	return monkeyBusiness
+}
+
 type Monkey struct {
 	Items                  []int
 	Operation              func(int) int
-	Test                   func(int) bool
+	Test                   func(int) (bool, int)
+	Divisor                int
 	MonkeyToThrowToIfTrue  int
 	MonkeyToThrowToIfFalse int
 	InspectionCount        int
@@ -161,8 +225,10 @@ func parseMonkeySections(sections [][]string) ([]Monkey, error) {
 		if err != nil {
 			return nil, err
 		}
-		test := func(newWorry int) bool {
-			return newWorry%divisibleByValue == 0
+		monkey.Divisor = divisibleByValue
+		test := func(newWorry int) (bool, int) {
+			modulo := newWorry % divisibleByValue
+			return modulo == 0, modulo
 		}
 		monkey.Test = test
 
